@@ -35,7 +35,7 @@ VERSION = "0.1.2"
 
 # What packages are required for this module to be executed?
 REQUIRED = [
-    "librosa=0.9.0",
+    "librosa==0.9.0",
     "matplotlib",
     "torch>=1.7.0",
     "progressbar",
