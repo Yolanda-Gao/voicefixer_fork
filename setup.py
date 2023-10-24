@@ -39,7 +39,7 @@ REQUIRED = [
     "matplotlib",
     "torch>=1.7.0",
     "progressbar",
-    "torchlibrosa==0.0.7",
+    "torchlibrosa",
     "GitPython",
     "streamlit>=1.12.0",
     "pyyaml",
