@@ -1,6 +1,7 @@
 # from torchlibrosa.stft import STFT, ISTFT, magphase
 import torch
 import torch.nn as nn
+from torch import Tensor
 import numpy as np
 from voicefixer.tools.modules.pqmf import PQMF
 from typing import Any, Dict, Union
