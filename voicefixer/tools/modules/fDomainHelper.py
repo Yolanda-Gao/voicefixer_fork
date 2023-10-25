@@ -3,9 +3,10 @@ import torch
 import torch.nn as nn
 import numpy as np
 from voicefixer.tools.modules.pqmf import PQMF
+from typing import Any, Dict, Union
 
 class FDomainHelper(nn.Module):
-    def STFT(self, waveforms: Union[Tensor, np.ndarray]) -> Tensor:
+    def STFT(self, waveforms) -> Tensor:
       """Returns complex-valued spectrogram in (n_fft/2 + 1) dim."""
       if not torch.is_tensor(waveforms):
         waveforms = torch.from_numpy(waveforms)
