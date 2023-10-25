@@ -69,44 +69,68 @@ class FDomainHelper(nn.Module):
         self.subband = subband
         # assert torchlibrosa.__version__ == "0.0.7", "Error: Found torchlibrosa version %s. Please install 0.0.7 version of torchlibrosa by: pip install torchlibrosa==0.0.7." % torchlibrosa.__version__
         if self.subband is None:
-            self.stft = self.STFT(
-                n_fft=window_size,
-                hop_length=hop_size,
-                win_length=window_size,
-                window=window,
-                center=center,
-                pad_mode=pad_mode,
-            )
+            self.n_fft=window_size
+            self.hop_length=hop_size
+            self.win_length=window_size
 
-            self.istft = self.ISTFT(
-                n_fft=window_size,
-                hop_length=hop_size,
-                win_length=window_size,
-                window=window,
-                center=center,
-                pad_mode=pad_mode,
-            )
         else:
-            self.stft = self.STFT(
-                n_fft=window_size // self.subband,
-                hop_length=hop_size // self.subband,
-                win_length=window_size // self.subband,
-                window=window,
-                center=center,
-                pad_mode=pad_mode,
-            )
+            self.n_fft=window_size // self.subband
+            self.hop_length=hop_size // self.subband
+            self.win_length=window_size // self.subband
 
-            self.istft = self.ISTFT(
-                n_fft=window_size // self.subband,
-                hop_length=hop_size // self.subband,
-                win_length=window_size // self.subband,
-                window=window,
-                center=center,
-                pad_mode=pad_mode,
-            )
+        self.window=window,
+        self.center=center,
+        self.pad_mode=pad_mode,
+
 
         if subband is not None and root is not None:
             self.qmf = PQMF(subband, 64, root)
+
+    def STFT(self, waveforms) -> Tensor:
+      """Returns complex-valued spectrogram in (n_fft/2 + 1) dim."""
+      if not torch.is_tensor(waveforms):
+        waveforms = torch.from_numpy(waveforms)
+      # [..., n_fft/2 + 1, n_frames]
+      stft = torch.stft(
+          waveforms,
+          n_fft=self.n_fft,
+          hop_length=self.hop_length,
+          win_length=self.win_length,
+          center=self.center,
+          pad_mode=self.pad_mode,
+          window=self.window.to(waveforms.device),
+          return_complex=True)
+      return stft
+  
+    def ISTFT(self, spectrogram: Union[Tensor, np.ndarray], length) -> Tensor:
+      """Returns to wav from spectrogram."""
+      istft = torch.istft(
+          spectrogram,
+          n_fft=self.n_fft,
+          hop_length=self.hop_length,
+          win_length=self.win_length,
+          center=self.center,
+          window=self.window,
+          length=length)
+      return istft
+
+    def magphase(real, imag):
+      r"""Calculate magnitude and phase from real and imag part of signals.
+  
+      Args:
+          real: tensor, real part of signals
+          imag: tensor, imag part of signals
+  
+      Returns:
+          mag: tensor, magnitude of signals
+          cos: tensor, cosine of phases of signals
+          sin: tensor, sine of phases of signals
+      """
+      mag = (real ** 2 + imag ** 2) ** 0.5
+      cos = real / torch.clamp(mag, 1e-10, np.inf)
+      sin = imag / torch.clamp(mag, 1e-10, np.inf)
+  
+      return mag, cos, sin
 
     def complex_spectrogram(self, input, eps=0.0):
         # [batchsize, samples]
