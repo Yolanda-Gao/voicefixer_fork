@@ -6,6 +6,25 @@ import numpy as np
 from voicefixer.tools.modules.pqmf import PQMF
 from typing import Any, Dict, Union
 
+class DFTBase(nn.Module):
+    def __init__(self):
+        r"""Base class for DFT and IDFT matrix.
+        """
+        super(DFTBase, self).__init__()
+
+    def dft_matrix(self, n):
+        (x, y) = np.meshgrid(np.arange(n), np.arange(n))
+        omega = np.exp(-2 * np.pi * 1j / n)
+        W = np.power(omega, x * y)  # shape: (n, n)
+        return W
+
+    def idft_matrix(self, n):
+        (x, y) = np.meshgrid(np.arange(n), np.arange(n))
+        omega = np.exp(2 * np.pi * 1j / n)
+        W = np.power(omega, x * y)  # shape: (n, n)
+        return W
+
+
 class STFT(DFTBase):
     def __init__(self, n_fft=2048, hop_length=None, win_length=None,
         window='hann', center=True, pad_mode='reflect', freeze_parameters=True):
